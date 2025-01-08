@@ -9,104 +9,75 @@ const account = new Account(client)
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm')
-const signupForm = document.getElementById('signupForm')
 const loggedInView = document.getElementById('loggedInView')
 const userInfo = document.getElementById('userInfo')
-const loginButton = document.getElementById('loginButton')
-const signupButton = document.getElementById('signupButton')
-const logoutButton = document.getElementById('logoutButton')
-const showSignupLink = document.getElementById('showSignup')
-const showLoginLink = document.getElementById('showLogin')
 
-// Toggle between login and signup forms
-showSignupLink.addEventListener('click', () => {
-  loginForm.classList.add('hidden')
-  signupForm.classList.remove('hidden')
-})
-
-showLoginLink.addEventListener('click', () => {
-  signupForm.classList.add('hidden')
-  loginForm.classList.remove('hidden')
-})
-
-// Check if user is already logged in
-const checkAuth = async () => {
+// Handle external auth and Appwrite session creation
+async function handleExternalAuth(email, password) {
   try {
-    const session = await account.get()
-    showLoggedInView(session)
-  } catch (error) {
-    showLoginView()
-  }
-}
-
-// Show logged in view
-const showLoggedInView = (user) => {
-  loginForm.classList.add('hidden')
-  signupForm.classList.add('hidden')
-  loggedInView.classList.remove('hidden')
-  userInfo.textContent = `Logged in as: ${user.name}`
-}
-
-// Show login view
-const showLoginView = () => {
-  loginForm.classList.remove('hidden')
-  signupForm.classList.add('hidden')
-  loggedInView.classList.add('hidden')
-}
-
-// Handle signup
-signupButton.addEventListener('click', async () => {
-  const email = document.getElementById('signupEmail').value
-  const password = document.getElementById('signupPassword').value
-  const name = document.getElementById('signupName').value
-
-  try {
-    // First create user through our backend
+    // First, authenticate with external system
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/auth/signup`,
+      `${import.meta.env.VITE_BACKEND_URL}/auth/external/login`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password }),
       },
     )
 
     const data = await response.json()
     if (!response.ok) throw new Error(data.message)
 
-    // Then create session directly with Appwrite
-    const session = await account.createEmailSession(email, password)
-    showLoggedInView(session)
-  } catch (error) {
-    alert('Signup failed: ' + error.message)
-  }
-})
+    // Then create Appwrite session using the custom token
+    const session = await account.createSession(data.userId, data.secret)
 
-// Handle login
-loginButton.addEventListener('click', async () => {
-  const email = document.getElementById('loginEmail').value
-  const password = document.getElementById('loginPassword').value
+    // Show logged in state
+    loginForm.classList.add('hidden')
+    loggedInView.classList.remove('hidden')
+    userInfo.textContent = `Logged in as: ${data.name}`
+
+    return session
+  } catch (error) {
+    throw new Error('Authentication failed: ' + error.message)
+  }
+}
+
+// Handle login button click
+document.getElementById('loginButton').addEventListener('click', async () => {
+  const email = document.getElementById('email').value
+  const password = document.getElementById('password').value
 
   try {
-    // Create session directly with Appwrite
-    const session = await account.createEmailSession(email, password)
-    showLoggedInView(session)
+    await handleExternalAuth(email, password)
   } catch (error) {
-    alert('Login failed: ' + error.message)
+    alert(error.message)
   }
 })
 
 // Handle logout
-logoutButton.addEventListener('click', async () => {
+document.getElementById('logoutButton').addEventListener('click', async () => {
   try {
     await account.deleteSession('current')
-    showLoginView()
+    loginForm.classList.remove('hidden')
+    loggedInView.classList.add('hidden')
   } catch (error) {
     alert('Logout failed: ' + error.message)
   }
 })
 
-// Check auth status on page load
+// Check auth status on load
+async function checkAuth() {
+  try {
+    const session = await account.get()
+    loginForm.classList.add('hidden')
+    loggedInView.classList.remove('hidden')
+    userInfo.textContent = `Logged in as: ${session.name}`
+  } catch {
+    loginForm.classList.remove('hidden')
+    loggedInView.classList.add('hidden')
+  }
+}
+
 checkAuth()

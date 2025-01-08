@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { Client, Users, Account } from 'node-appwrite'
+import { Client, Users } from 'node-appwrite'
 import dotenv from 'dotenv'
 
 // Load environment variables
@@ -30,35 +30,50 @@ const client = new Client()
   .setKey(process.env.APPWRITE_API_KEY)
 
 const users = new Users(client)
-const account = new Account(client)
 
-// Generate a simple unique ID
-const generateId = () => Math.random().toString(36).substring(2, 15)
+// Simulate a third-party auth database
+const thirdPartyUsers = {
+  'demo@example.com': {
+    password: 'demo1234',
+    name: 'Demo User',
+    id: 'external_123',
+  },
+}
 
-app.post('/auth/signup', async (req, res) => {
-  const { email, password, name } = req.body
-
-  if (!email || !password || !name) {
-    return res.status(400).json({ message: 'All fields are required' })
-  }
-
-  try {
-    const userId = generateId()
-    const user = await users.create(userId, email, undefined, password, name)
-    res.json({ userId: user.$id })
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-})
-
-app.post('/auth/login', async (req, res) => {
+// Simulate third-party login
+app.post('/auth/external/login', async (req, res) => {
   const { email, password } = req.body
 
+  // Simulate external auth validation
+  const user = thirdPartyUsers[email]
+  if (!user || user.password !== password) {
+    return res.status(401).json({ message: 'Invalid credentials' })
+  }
+
   try {
-    const session = await account.createEmailSession(email, password)
-    res.json({ userId: session.userId })
+    // Check if user exists in Appwrite
+    try {
+      await users.get(user.id)
+    } catch {
+      // User doesn't exist, create them
+      await users.create(
+        user.id,
+        email,
+        undefined, // phone
+        password,
+        user.name,
+      )
+    }
+
+    // After validating with external system, create Appwrite token
+    const token = await users.createToken(user.id)
+    res.json({
+      userId: user.id,
+      secret: token.secret,
+      name: user.name,
+    })
   } catch (error) {
-    res.status(401).json({ message: 'Invalid credentials' })
+    res.status(500).json({ message: error.message })
   }
 })
 
