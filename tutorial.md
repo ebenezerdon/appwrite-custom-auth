@@ -16,6 +16,34 @@ A simple authentication demo that:
 - An Appwrite account and project
 - Basic understanding of JavaScript and web development
 
+### Prerequisites check
+
+Before starting, verify your setup:
+
+1. Check Node.js installation:
+
+```bash
+node --version  # Should be v14 or higher
+```
+
+2. Create an Appwrite project:
+
+   - Sign in to your [Appwrite Console](https://cloud.appwrite.io)
+   - Create a new project or open an existing one
+   - Note down your Project ID from the project overview page
+
+3. Create an API key:
+
+   - In your project's overview page, scroll down to "Integrations"
+   - Click on "API Keys"
+   - Click "Create API Key"
+   - Enter a name for your key (e.g., "Custom Auth Demo")
+   - Set an expiry date (optional)
+   - Click "Next"
+   - Under "Scopes", select "Auth"
+   - Click "Create"
+   - Copy and save your API key securely. You'll need it in the next step.
+
 ## Project setup
 
 1. Create a new Vite project:
@@ -42,6 +70,13 @@ APPWRITE_API_KEY=your_api_key
 APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 APPWRITE_PROJECT_ID=your_project_id
 ```
+
+> **Note about environments**: This tutorial uses environment variables for configuration. In a production environment, you should:
+>
+> - Use different API keys for development and production
+> - Keep your production API keys secure
+> - Set up proper CORS and security headers
+> - Use HTTPS for all communications
 
 4. Update `package.json` to add the server script and set module type:
 
@@ -450,3 +485,72 @@ Note: The backend server will run on port 3000 by default, but you can change th
 3. Implement rate limiting and security measures
 4. Add user registration functionality
 5. Enhance the UI with loading states and better error messages
+
+## Troubleshooting
+
+Here are some common issues you might encounter and how to resolve them:
+
+### Backend issues
+
+- **Environment variables not found**: Make sure your `.env` file is in the project root and contains all required variables
+- **Port already in use**: Either stop the process using port 3000 or change the port using the PORT environment variable
+- **Appwrite API errors**: Verify your API key has the necessary permissions in the Appwrite console
+
+### Frontend issues
+
+- **CORS errors**: Ensure your backend's CORS configuration matches your frontend's domain
+- **Session not persisting**: Check that cookies are enabled in your browser
+- **Invalid credentials**: Use the demo account (demo@example.com / demo1234) or check your user database
+
+## Security considerations
+
+When implementing this in production:
+
+1. **Token security**:
+
+   - Store tokens securely; never in localStorage
+   - Implement proper token expiration
+   - Use HTTPS for all API communications
+
+2. **User management**:
+
+   - Implement proper password hashing
+   - Add rate limiting for login attempts
+   - Consider adding 2FA support
+
+3. **Error handling**:
+   - Never expose internal errors to clients
+   - Implement proper logging
+   - Monitor authentication failures
+
+## Conclusion
+
+In this tutorial, you've learned how to:
+
+- Set up a custom authentication server that integrates with Appwrite
+- Generate and manage Appwrite custom tokens
+- Create a frontend that handles the authentication flow
+- Implement secure session management
+
+This implementation provides a foundation for building more complex authentication systems. While we've used a simple in-memory user database for demonstration, the concepts apply to any external authentication provider, whether it's your own user database, Active Directory, or third-party identity providers.
+
+Remember that authentication is a critical security component. Before deploying to production, ensure you've implemented proper security measures, error handling, and user management features.
+
+## Resources
+
+- [Appwrite Documentation](https://appwrite.io/docs)
+- [Custom Authentication Guide](https://appwrite.io/docs/authentication)
+- [Express.js Documentation](https://expressjs.com/)
+- [Web Security Best Practices](https://owasp.org/www-project-top-ten/)
+
+## Getting help
+
+If you encounter issues or have questions:
+
+- Join the [Appwrite Discord community](https://appwrite.io/discord)
+- Check the [Appwrite GitHub repository](https://github.com/appwrite/appwrite)
+- Review the [Appwrite FAQ](https://appwrite.io/docs/faq)
+
+## License
+
+This tutorial and its code are available under the MIT License. Feel free to use, modify, and distribute them as needed.
