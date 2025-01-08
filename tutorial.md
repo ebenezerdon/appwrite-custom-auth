@@ -1,8 +1,8 @@
-# Building Custom Authentication Flows with Appwrite
+# Building custom authentication flows with Appwrite
 
 This tutorial will teach you how to implement custom authentication flows using Appwrite's custom tokens. You'll learn how to integrate external authentication systems with Appwrite's session management.
 
-## What We'll Build
+## What we'll build
 
 We'll create a demo application that:
 
@@ -16,9 +16,9 @@ We'll create a demo application that:
 - Basic understanding of JavaScript/Node.js
 - An Appwrite account and project set up
 
-## Understanding Custom Tokens in Appwrite
+## Understanding custom tokens in Appwrite
 
-### What are Custom Tokens?
+### What are custom tokens?
 
 Custom tokens in Appwrite are short-lived secrets that can be exchanged for sessions. They're useful when you want to:
 
@@ -26,13 +26,13 @@ Custom tokens in Appwrite are short-lived secrets that can be exchanged for sess
 - Implement custom authentication methods
 - Skip Appwrite's built-in authentication
 
-### Why Use Custom Tokens?
+### Why use custom tokens?
 
-1. **Integration with External Systems**: You might have an existing auth system or want to use services like Auth0
-2. **Custom Authentication Methods**: Implement unique auth flows like biometrics or hardware tokens
+1. **Integration with external systems**: You might have an existing auth system or want to use services like Auth0
+2. **Custom authentication methods**: Implement unique auth flows like biometrics or hardware tokens
 3. **Flexibility**: Complete control over the authentication process while using Appwrite's session management
 
-## Project Setup
+## Project setup
 
 1. First, create a new Vite project:
 
@@ -60,11 +60,11 @@ Custom tokens in Appwrite are short-lived secrets that can be exchanged for sess
    APPWRITE_PROJECT_ID=your_project_id
    ```
 
-## Building the Backend
+## Building the backend
 
 Let's build our backend step by step:
 
-1. **Basic Server Setup**
+1. **Basic server setup**
    Create `server.js` and set up the basic Express server:
 
    ```javascript
@@ -88,7 +88,7 @@ Let's build our backend step by step:
 
    This sets up a basic Express server with CORS and JSON parsing.
 
-2. **Appwrite Integration**
+2. **Appwrite integration**
    Add Appwrite client setup:
 
    ```javascript
@@ -105,7 +105,7 @@ Let's build our backend step by step:
 
    This initializes the Appwrite client with our configuration.
 
-3. **Simulated User Database**
+3. **Simulated user database**
    Add a simple in-memory user database for demonstration:
 
    ```javascript
@@ -121,7 +121,7 @@ Let's build our backend step by step:
 
    In a real application, this would be your actual user database.
 
-4. **Login Endpoint**
+4. **Login endpoint**
    Create the login endpoint that generates custom tokens:
 
    ```javascript
@@ -154,11 +154,11 @@ Let's build our backend step by step:
    - Creates an Appwrite token for the user
    - Returns the token secret and user info
 
-## Building the Frontend
+## Building the frontend
 
 Let's build the frontend piece by piece:
 
-1. **Basic HTML Structure**
+1. **Basic HTML structure**
    Create a simple login form in `index.html`:
 
    ```html
@@ -184,7 +184,7 @@ Let's build the frontend piece by piece:
    </div>
    ```
 
-2. **Appwrite Client Setup**
+2. **Appwrite client setup**
    In `src/main.js`, initialize Appwrite:
 
    ```javascript
@@ -197,7 +197,7 @@ Let's build the frontend piece by piece:
    const account = new Account(client)
    ```
 
-3. **Authentication Handler**
+3. **Authentication handler**
    Add the function to handle authentication:
 
    ```javascript
@@ -225,7 +225,7 @@ Let's build the frontend piece by piece:
    }
    ```
 
-4. **Event Handlers**
+4. **Event handlers**
    Add click handlers for login and logout:
 
    ```javascript
@@ -257,7 +257,7 @@ Let's build the frontend piece by piece:
      })
    ```
 
-5. **UI State Management**
+5. **UI state management**
    Add functions to manage the UI state:
 
    ```javascript
@@ -275,7 +275,7 @@ Let's build the frontend piece by piece:
    }
    ```
 
-## Testing the Flow
+## Testing the flow
 
 1. Start the backend:
 
@@ -293,9 +293,9 @@ Let's build the frontend piece by piece:
    - Email: `demo@example.com`
    - Password: `demo1234`
 
-## Security Considerations
+## Security considerations
 
-1. **Token Security**:
+1. **Token security**:
 
    - Tokens are short-lived by design
    - Never store tokens in localStorage
@@ -306,7 +306,7 @@ Let's build the frontend piece by piece:
    - Implement rate limiting
    - Log authentication attempts
 
-## Next Steps
+## Next steps
 
 1. Replace the simulated database with your actual auth system
 2. Add proper error handling and logging
