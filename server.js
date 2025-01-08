@@ -97,23 +97,6 @@ app.post('/auth/login', async (req, res) => {
 
 const PORT = process.env.PORT || 3000
 
-const server = app
-  .listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`)
-  })
-  .on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${PORT} is already in use. Please:`)
-      console.error(
-        '1. Check if the server is already running in another terminal',
-      )
-      console.error('2. Kill the process using the port:')
-      console.error(`   lsof -i :${PORT}`)
-      console.error(`   kill -9 PID`)
-      console.error('3. Or use a different port:')
-      console.error('   PORT=3001 npm run server')
-    } else {
-      console.error('Server error:', err)
-    }
-    process.exit(1)
-  })
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`)
+})
