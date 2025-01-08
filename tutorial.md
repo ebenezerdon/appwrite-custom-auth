@@ -1,320 +1,452 @@
 # Building custom authentication flows with Appwrite
 
-This tutorial will teach you how to implement custom authentication flows using Appwrite's custom tokens. You'll learn how to integrate external authentication systems with Appwrite's session management.
+This tutorial demonstrates how to implement custom authentication flows using Appwrite's custom tokens. You'll learn how to integrate external authentication systems with Appwrite's session management through a working example.
 
 ## What we'll build
 
-We'll create a demo application that:
+A simple authentication demo that:
 
-1. Simulates a third-party authentication system
-2. Uses Appwrite's custom tokens for session management
-3. Demonstrates a complete authentication flow
+1. Uses a simulated third-party authentication system
+2. Integrates with Appwrite's custom token authentication
+3. Provides a complete login/logout flow with session management
 
 ## Prerequisites
 
 - Node.js installed on your machine
-- Basic understanding of JavaScript/Node.js
-- An Appwrite account and project set up
-
-## Understanding custom tokens in Appwrite
-
-### What are custom tokens?
-
-Custom tokens in Appwrite are short-lived secrets that can be exchanged for sessions. They're useful when you want to:
-
-- Integrate external authentication systems
-- Implement custom authentication methods
-- Skip Appwrite's built-in authentication
-
-### Why use custom tokens?
-
-1. **Integration with external systems**: You might have an existing auth system or want to use services like Auth0
-2. **Custom authentication methods**: Implement unique auth flows like biometrics or hardware tokens
-3. **Flexibility**: Complete control over the authentication process while using Appwrite's session management
+- An Appwrite account and project
+- Basic understanding of JavaScript and web development
 
 ## Project setup
 
-1. First, create a new Vite project:
+1. Create a new Vite project:
 
-   ```bash
-   npm create vite@latest appwrite-custom-auth -- --template vanilla
-   cd appwrite-custom-auth
-   ```
+```bash
+npm create vite@latest . -- --template vanilla
+```
 
 2. Install the required dependencies:
 
-   ```bash
-   npm install express cors dotenv appwrite node-appwrite
-   ```
+```bash
+npm install appwrite cors dotenv express node-appwrite
+```
 
-3. Create a `.env` file for configuration:
+3. Create a `.env` file in the project root:
 
-   ```env
-   VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
-   VITE_APPWRITE_PROJECT_ID=your_project_id
-   VITE_BACKEND_URL=http://localhost:3002
+```env
+VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+VITE_APPWRITE_PROJECT_ID=your_project_id
+VITE_BACKEND_URL=http://localhost:3000
 
-   # Server-only variables
-   APPWRITE_API_KEY=your_api_key
-   APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
-   APPWRITE_PROJECT_ID=your_project_id
-   ```
+# Server-only variables
+APPWRITE_API_KEY=your_api_key
+APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=your_project_id
+```
 
-## Building the backend
+4. Update `package.json` to add the server script and set module type:
 
-Let's build our backend step by step:
+```json
+{
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
+```
 
-1. **Basic server setup**
-   Create `server.js` and set up the basic Express server:
+## Backend implementation
 
-   ```javascript
-   import express from 'express'
-   import cors from 'cors'
-   import dotenv from 'dotenv'
+First, let's create the authentication server that will validate users and generate Appwrite custom tokens. Create `server.js` in the project root and let's build it step by step:
 
-   // Load environment variables
-   dotenv.config()
+1. First, import the required dependencies and load environment variables:
 
-   const app = express()
-   app.use(cors())
-   app.use(express.json())
+```javascript
+import express from 'express'
+import cors from 'cors'
+import { Client, Users } from 'node-appwrite'
+import dotenv from 'dotenv'
 
-   const PORT = process.env.PORT || 3000
+// Load environment variables
+dotenv.config()
+```
 
-   app.listen(PORT, () => {
-     console.log(`Server running on http://localhost:${PORT}`)
-   })
-   ```
+2. Add validation for required environment variables:
 
-   This sets up a basic Express server with CORS and JSON parsing.
+```javascript
+// Validate required environment variables
+const requiredEnvVars = [
+  'APPWRITE_ENDPOINT',
+  'APPWRITE_PROJECT_ID',
+  'APPWRITE_API_KEY',
+]
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`Missing required environment variable: ${envVar}`)
+    process.exit(1)
+  }
+}
+```
 
-2. **Appwrite integration**
-   Add Appwrite client setup:
+This ensures that all necessary configuration is available before starting the server.
 
-   ```javascript
-   import { Client, Users } from 'node-appwrite'
+3. Set up the Express server with middleware:
 
-   // Initialize Appwrite
-   const client = new Client()
-     .setEndpoint(process.env.APPWRITE_ENDPOINT)
-     .setProject(process.env.APPWRITE_PROJECT_ID)
-     .setKey(process.env.APPWRITE_API_KEY)
+```javascript
+const app = express()
+app.use(cors())
+app.use(express.json())
+```
 
-   const users = new Users(client)
-   ```
+4. Initialize the Appwrite client:
 
-   This initializes the Appwrite client with our configuration.
+```javascript
+// Initialize Appwrite
+const client = new Client()
+  .setEndpoint(process.env.APPWRITE_ENDPOINT)
+  .setProject(process.env.APPWRITE_PROJECT_ID)
+  .setKey(process.env.APPWRITE_API_KEY)
 
-3. **Simulated user database**
-   Add a simple in-memory user database for demonstration:
+const users = new Users(client)
+```
 
-   ```javascript
-   // Simulate a third-party auth database
-   const thirdPartyUsers = {
-     'demo@example.com': {
-       password: 'demo1234',
-       name: 'Demo User',
-       id: 'external_123',
-     },
-   }
-   ```
+5. Create a simulated user database (in a real app, this would be your actual database):
 
-   In a real application, this would be your actual user database.
+```javascript
+// Simulate a third-party auth database
+const thirdPartyUsers = {
+  'demo@example.com': {
+    password: 'demo1234',
+    name: 'Demo User',
+    id: 'external_123',
+  },
+}
+```
 
-4. **Login endpoint**
-   Create the login endpoint that generates custom tokens:
+6. Implement the login endpoint that handles authentication:
 
-   ```javascript
-   app.post('/auth/external/login', async (req, res) => {
-     const { email, password } = req.body
+```javascript
+// Simulate third-party login
+app.post('/auth/external/login', async (req, res) => {
+  const { email, password } = req.body
 
-     // Validate credentials
-     const user = thirdPartyUsers[email]
-     if (!user || user.password !== password) {
-       return res.status(401).json({ message: 'Invalid credentials' })
-     }
+  // Simulate external auth validation
+  const user = thirdPartyUsers[email]
+  if (!user || user.password !== password) {
+    return res.status(401).json({ message: 'Invalid credentials' })
+  }
 
-     try {
-       // Create Appwrite token
-       const token = await users.createToken(user.id)
-       res.json({
-         userId: user.id,
-         secret: token.secret,
-         name: user.name,
-       })
-     } catch (error) {
-       res.status(500).json({ message: error.message })
-     }
-   })
-   ```
+  try {
+    // Check if user exists in Appwrite
+    try {
+      await users.get(user.id)
+    } catch {
+      // User doesn't exist, create them
+      await users.create(
+        user.id,
+        email,
+        undefined, // phone
+        password,
+        user.name,
+      )
+    }
 
-   This endpoint:
+    // After validating with external system, create Appwrite token
+    const token = await users.createToken(user.id)
+    res.json({
+      userId: user.id,
+      secret: token.secret,
+      name: user.name,
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+```
 
-   - Validates user credentials against our system
-   - Creates an Appwrite token for the user
-   - Returns the token secret and user info
+This endpoint:
 
-## Building the frontend
+- Validates user credentials against our simulated database
+- Creates the user in Appwrite if they don't exist
+- Generates a custom token for the user
+- Returns the token and user information
 
-Let's build the frontend piece by piece:
+7. Finally, start the server:
 
-1. **Basic HTML structure**
-   Create a simple login form in `index.html`:
+```javascript
+const PORT = process.env.PORT || 3000
 
-   ```html
-   <div class="container">
-     <div id="loginForm">
-       <h2>External Auth System</h2>
-       <div class="form-group">
-         <label for="email">Email:</label>
-         <input type="email" id="email" required />
-       </div>
-       <div class="form-group">
-         <label for="password">Password:</label>
-         <input type="password" id="password" required />
-       </div>
-       <button id="loginButton">Login</button>
-     </div>
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`)
+})
+```
 
-     <div id="loggedInView" class="hidden">
-       <h2>Welcome!</h2>
-       <p id="userInfo"></p>
-       <button id="logoutButton">Logout</button>
-     </div>
-   </div>
-   ```
+8. Start the backend server:
 
-2. **Appwrite client setup**
-   In `src/main.js`, initialize Appwrite:
+```bash
+npm run server
+```
 
-   ```javascript
-   import { Client, Account } from 'appwrite'
+The server should now be running and ready to handle authentication requests.
 
-   const client = new Client()
-     .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT)
-     .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID)
+## Frontend implementation
 
-   const account = new Account(client)
-   ```
+Now that our authentication server is running, let's create the user interface that will interact with it.
 
-3. **Authentication handler**
-   Add the function to handle authentication:
+### HTML structure
 
-   ```javascript
-   async function handleExternalAuth(email, password) {
-     try {
-       // First, authenticate with external system
-       const response = await fetch(
-         `${import.meta.env.VITE_BACKEND_URL}/auth/external/login`,
-         {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ email, password }),
-         },
-       )
+First, let's set up the basic HTML structure and add some styles:
 
-       const data = await response.json()
-       if (!response.ok) throw new Error(data.message)
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appwrite Custom Auth Demo</title>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Content will go here -->
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+```
 
-       // Create Appwrite session with custom token
-       const session = await account.createSession(data.userId, data.secret)
-       return session
-     } catch (error) {
-       throw new Error('Authentication failed: ' + error.message)
-     }
-   }
-   ```
+Next, add the CSS styles in the `<head>` section:
 
-4. **Event handlers**
-   Add click handlers for login and logout:
+```html
+<style>
+  .container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+  }
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  .info {
+    background: #f0f0f0;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  .hidden {
+    display: none;
+  }
+</style>
+```
 
-   ```javascript
-   // Login handler
-   document
-     .getElementById('loginButton')
-     .addEventListener('click', async () => {
-       const email = document.getElementById('email').value
-       const password = document.getElementById('password').value
+These styles create a clean, centered layout with consistent form elements and a nice info box.
 
-       try {
-         await handleExternalAuth(email, password)
-         showLoggedInView()
-       } catch (error) {
-         alert(error.message)
-       }
-     })
+Now, let's add the info section that explains what the demo does:
 
-   // Logout handler
-   document
-     .getElementById('logoutButton')
-     .addEventListener('click', async () => {
-       try {
-         await account.deleteSession('current')
-         showLoginView()
-       } catch (error) {
-         alert('Logout failed: ' + error.message)
-       }
-     })
-   ```
+```html
+<div class="info">
+  <h3>Custom Token Auth Demo</h3>
+  <p>
+    This demonstrates using Appwrite's custom token authentication with a
+    simulated third-party auth system.
+  </p>
+  <p>Try: demo@example.com / demo1234</p>
+</div>
+```
 
-5. **UI state management**
-   Add functions to manage the UI state:
+Next, add the login form that will collect user credentials:
 
-   ```javascript
-   function showLoggedInView(user) {
-     document.getElementById('loginForm').classList.add('hidden')
-     document.getElementById('loggedInView').classList.remove('hidden')
-     document.getElementById(
-       'userInfo',
-     ).textContent = `Logged in as: ${user.name}`
-   }
+```html
+<!-- External Login Form -->
+<div id="loginForm">
+  <h2>External Auth System</h2>
+  <div class="form-group">
+    <label for="email">Email:</label>
+    <input type="email" id="email" required />
+  </div>
+  <div class="form-group">
+    <label for="password">Password:</label>
+    <input type="password" id="password" required />
+  </div>
+  <button id="loginButton">Login with External System</button>
+</div>
+```
 
-   function showLoginView() {
-     document.getElementById('loginForm').classList.remove('hidden')
-     document.getElementById('loggedInView').classList.add('hidden')
-   }
-   ```
+Finally, add the logged-in view that will be shown after successful authentication:
 
-## Testing the flow
+```html
+<!-- Logged In View -->
+<div id="loggedInView" class="hidden">
+  <h2>Welcome!</h2>
+  <p id="userInfo"></p>
+  <button id="logoutButton">Logout</button>
+</div>
+```
 
-1. Start the backend:
+### Frontend logic
 
-   ```bash
-   npm run server
-   ```
+Create `src/main.js` to handle the authentication logic. Let's break it down into parts:
 
-2. Start the frontend:
+1. First, initialize the Appwrite client:
 
-   ```bash
-   npm run dev
-   ```
+```javascript
+import { Client, Account } from 'appwrite'
 
-3. Test the login flow:
-   - Email: `demo@example.com`
-   - Password: `demo1234`
+// Initialize Appwrite
+const client = new Client()
+  .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT)
+  .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID)
 
-## Security considerations
+const account = new Account(client)
+```
 
-1. **Token security**:
+2. Get references to DOM elements we'll need:
 
-   - Tokens are short-lived by design
-   - Never store tokens in localStorage
-   - Use HTTPS for all communications
+```javascript
+// DOM Elements
+const loginForm = document.getElementById('loginForm')
+const loggedInView = document.getElementById('loggedInView')
+const userInfo = document.getElementById('userInfo')
+```
 
-2. **Validation**:
-   - Always validate users before creating tokens
-   - Implement rate limiting
-   - Log authentication attempts
+3. Create the main authentication function that handles the login flow:
+
+```javascript
+// Handle external auth and Appwrite session creation
+async function handleExternalAuth(email, password) {
+  try {
+    // First, authenticate with external system
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/auth/external/login`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      },
+    )
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message)
+
+    // Then create Appwrite session using the custom token
+    const session = await account.createSession(data.userId, data.secret)
+
+    // Show logged in state
+    loginForm.classList.add('hidden')
+    loggedInView.classList.remove('hidden')
+    userInfo.textContent = `Logged in as: ${data.name}`
+
+    return session
+  } catch (error) {
+    throw new Error('Authentication failed: ' + error.message)
+  }
+}
+```
+
+4. Add event listeners for login and logout:
+
+```javascript
+// Handle login button click
+document.getElementById('loginButton').addEventListener('click', async () => {
+  const email = document.getElementById('email').value
+  const password = document.getElementById('password').value
+
+  try {
+    await handleExternalAuth(email, password)
+  } catch (error) {
+    alert(error.message)
+  }
+})
+
+// Handle logout
+document.getElementById('logoutButton').addEventListener('click', async () => {
+  try {
+    await account.deleteSession('current')
+    loginForm.classList.remove('hidden')
+    loggedInView.classList.add('hidden')
+  } catch (error) {
+    alert('Logout failed: ' + error.message)
+  }
+})
+```
+
+5. Finally, add session checking on page load:
+
+```javascript
+// Check auth status on load
+async function checkAuth() {
+  try {
+    const session = await account.get()
+    loginForm.classList.add('hidden')
+    loggedInView.classList.remove('hidden')
+    userInfo.textContent = `Logged in as: ${session.name}`
+  } catch {
+    loginForm.classList.remove('hidden')
+    loggedInView.classList.add('hidden')
+  }
+}
+
+checkAuth()
+```
+
+This function runs when the page loads and checks if there's an existing session. If there is, it shows the logged-in view; otherwise, it shows the login form.
+
+## Running the application
+
+1. Make sure the backend server is running:
+
+```bash
+npm run server
+```
+
+2. In a new terminal, start the frontend development server:
+
+```bash
+npm run dev
+```
+
+3. Open your browser and navigate to the URL shown by Vite (usually http://localhost:5173)
+
+4. Try logging in with:
+   - Email: demo@example.com
+   - Password: demo1234
+
+Note: The backend server will run on port 3000 by default, but you can change this by setting the PORT environment variable.
+
+## How it works
+
+1. When a user submits the login form, the frontend sends credentials to our backend server
+2. The backend validates the credentials against its user database
+3. If valid, the backend uses Appwrite's SDK to create a custom token for the user
+4. The backend returns the token secret and user info to the frontend
+5. The frontend uses the token to create an Appwrite session
+6. The user is now authenticated and can access protected resources
 
 ## Next steps
 
-1. Replace the simulated database with your actual auth system
-2. Add proper error handling and logging
+1. Replace the simulated user database with your actual authentication system
+2. Add proper error handling and validation
 3. Implement rate limiting and security measures
-4. Add user management features
-
-## Resources
-
-- [Appwrite Documentation](https://appwrite.io/docs)
-- [Custom Authentication Guide](https://appwrite.io/docs/authentication)
-- [Security Best Practices](https://appwrite.io/docs/security)
+4. Add user registration functionality
+5. Enhance the UI with loading states and better error messages
