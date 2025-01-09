@@ -2,7 +2,7 @@
 
 While Appwrite provides built-in authentication methods like email/password, OAuth, and Magic URL, there are scenarios where you need more flexibility. You might have an existing user database, a legacy authentication system that needs to be maintained, or specific security requirements that demand custom implementation.
 
-Appwrite's custom authentication solves these challenges by allowing you to integrate your existing authentication system or third-party identity providers. You can validate users through your system while still taking advantage of Appwrite's session management and user features.
+Appwrite's custom authentication solves these challenges by allowing you to integrate your existing authentication system or third-party identity providers. You can validate users through your system while still benefiting from Appwrite's session management and user features.
 
 In this guide, you'll learn how to implement custom authentication flows using Appwrite's custom tokens. We'll cover validating users through an external system, generating custom tokens, creating secure sessions, and managing the complete authentication lifecycle.
 
@@ -14,30 +14,21 @@ A simple authentication demo that:
 2. Integrates with Appwrite's custom token authentication
 3. Provides a login/logout flow with session management
 
-## Prerequisites
-
-- Node.js installed on your machine
-- An Appwrite account and project
-- Basic understanding of JavaScript and web development
-
-### Prerequisites check
+## Setting up your project
 
 Before starting, verify your setup:
 
-1. Check Node.js installation:
+1. First, ensure you have Node.js installed in your local environment:
 
    ```bash
    node --version
    ```
 
 2. Create an Appwrite project:
-
-   - Sign in to your [Appwrite Console](https://cloud.appwrite.io)
+   - Sign in to your [Appwrite Console](https://cloud.appwrite.io/)
    - Create a new project or open an existing one
    - Note down your Project ID when creating a project. You can also find it in the Settings page.
-
 3. Create an API key:
-
    - In your project's overview page, scroll down to "Integrations"
    - Click on "API Keys"
    - Click "Create API Key"
@@ -56,15 +47,15 @@ Before starting, verify your setup:
 npm create vite@latest . -- --template vanilla
 ```
 
-2. Next, install the required dependencies. For this project, we need `appwrite`, `cors`, `dotenv`, and `express`:
+1. Next, install the required dependencies. For this project, we need `appwrite`, `cors`, `dotenv`, and `express`:
 
 ```bash
 npm install appwrite cors dotenv express node-appwrite
 ```
 
-3. Create a `.env` file in the project root. This file will contain the Appwrite API key and other environment variables:
+1. Create a `.env` file in the project root. This file will contain the Appwrite API key and other environment variables:
 
-```env
+```
 VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 VITE_APPWRITE_PROJECT_ID=your_project_id
 VITE_BACKEND_URL=http://localhost:3000
@@ -75,7 +66,7 @@ APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 APPWRITE_PROJECT_ID=your_project_id
 ```
 
-4. Update `package.json` to add the server script and set module type:
+1. Update `package.json` to add the server script and set module type:
 
 ```json
 {
@@ -91,11 +82,11 @@ APPWRITE_PROJECT_ID=your_project_id
 
 ## Backend implementation
 
-First, let's create the authentication server that will validate users and generate Appwrite custom tokens. Create `server.js` in the project root and let's build it step by step.
+First, let's create the authentication server that will validate users and generate Appwrite custom tokens. Create a file named `server.js` in the project root and follow these steps.
 
-1. First, import the required dependencies and load environment variables:
+1. import the required dependencies and load environment variables:
 
-```javascript
+```jsx
 import express from 'express'
 import cors from 'cors'
 import { Client, Users } from 'node-appwrite'
@@ -105,9 +96,9 @@ import dotenv from 'dotenv'
 dotenv.config()
 ```
 
-2. Add validation for required environment variables:
+1. Add validation for required environment variables:
 
-```javascript
+```jsx
 // Validate required environment variables
 const requiredEnvVars = [
   'APPWRITE_ENDPOINT',
@@ -124,17 +115,17 @@ for (const envVar of requiredEnvVars) {
 
 This ensures that all necessary configuration is available before starting the server.
 
-3. Set up the Express server with middleware:
+1. Set up the Express server with middleware:
 
-```javascript
+```jsx
 const app = express()
 app.use(cors())
 app.use(express.json())
 ```
 
-4. Initialize the Appwrite client:
+1. Now, you can initialize the Appwrite client:
 
-```javascript
+```jsx
 // Initialize Appwrite
 const client = new Client()
   .setEndpoint(process.env.APPWRITE_ENDPOINT)
@@ -144,9 +135,9 @@ const client = new Client()
 const users = new Users(client)
 ```
 
-5. Create a simulated user database (in a real app, this would be your actual database):
+1. Create a simulated user database (in a real app, this would be your actual database):
 
-```javascript
+```jsx
 // Simulate a third-party auth database
 const thirdPartyUsers = {
   'demo@example.com': {
@@ -162,7 +153,7 @@ In a real-world scenario, you would integrate with an existing authentication sy
 
 1. Implement the login endpoint that handles authentication:
 
-```javascript
+```jsx
 // Simulate third-party login
 app.post('/auth/external/login', async (req, res) => {
   const { email, password } = req.body
@@ -208,20 +199,21 @@ This endpoint:
 - Generates a custom token for the user
 - Returns the token and user information
 
-7. Finally, start the server:
+1. Finally, start the server:
 
-```javascript
+```jsx
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
+  console.log(`Server running on <http://localhost>:${PORT}`)
 })
 ```
 
-8. Start the backend server:
+1. Start the backend server:
 
 ```bash
 npm run server
+
 ```
 
 The server should now be running and ready to handle authentication requests.
@@ -343,7 +335,7 @@ Create `src/main.js` to handle the authentication logic. Let's break it down int
 
 1. First, initialize the Appwrite client:
 
-```javascript
+```jsx
 import { Client, Account } from 'appwrite'
 
 // Initialize Appwrite
@@ -354,18 +346,18 @@ const client = new Client()
 const account = new Account(client)
 ```
 
-2. Get references to DOM elements we'll need:
+1. Get references to DOM elements we'll need:
 
-```javascript
+```jsx
 // DOM Elements
 const loginForm = document.getElementById('loginForm')
 const loggedInView = document.getElementById('loggedInView')
 const userInfo = document.getElementById('userInfo')
 ```
 
-3. Create the main authentication function that handles the login flow:
+1. Create the main authentication function that handles the login flow:
 
-```javascript
+```jsx
 // Handle external auth and Appwrite session creation
 async function handleExternalAuth(email, password) {
   try {
@@ -399,9 +391,9 @@ async function handleExternalAuth(email, password) {
 }
 ```
 
-4. Add event listeners for login and logout:
+1. Add event listeners for login and logout:
 
-```javascript
+```jsx
 // Handle login button click
 document.getElementById('loginButton').addEventListener('click', async () => {
   const email = document.getElementById('email').value
@@ -426,9 +418,9 @@ document.getElementById('logoutButton').addEventListener('click', async () => {
 })
 ```
 
-5. Finally, add session checking on page load:
+1. Finally, add session checking on page load:
 
-```javascript
+```jsx
 // Check auth status on load
 async function checkAuth() {
   try {
@@ -453,18 +445,19 @@ This function runs when the page loads and checks if there's an existing session
 
 ```bash
 npm run server
+
 ```
 
-2. In a new terminal, start the frontend development server:
+1. In a new terminal, start the frontend development server:
 
 ```bash
 npm run dev
+
 ```
 
-3. Open your browser and navigate to the URL shown by Vite (usually http://localhost:5173)
-
-4. Try logging in with:
-   - Email: demo@example.com
+1. Open your browser and navigate to the URL shown by Vite (usually [http://localhost:5173](http://localhost:5173/))
+2. Try logging in with:
+   - Email: [demo@example.com](mailto:demo@example.com)
    - Password: demo1234
 
 Note: The backend server will run on port 3000 by default, but you can change this by setting the PORT environment variable.
@@ -499,7 +492,7 @@ Here are some common issues you might encounter and how to resolve them:
 
 - **CORS errors**: Ensure your backend's CORS configuration matches your frontend's domain
 - **Session not persisting**: Check that cookies are enabled in your browser
-- **Invalid credentials**: Use the demo account (demo@example.com / demo1234) or check your user database
+- **Invalid credentials**: Use the demo account ([demo@example.com](mailto:demo@example.com) / demo1234) or check your user database
 
 ## Conclusion
 
