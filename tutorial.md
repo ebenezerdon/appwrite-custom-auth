@@ -26,9 +26,9 @@ Before starting, verify your setup:
 
 1. Check Node.js installation:
 
-```bash
-node --version  # Should be v14 or higher
-```
+   ```bash
+   node --version
+   ```
 
 2. Create an Appwrite project:
 
@@ -41,7 +41,7 @@ node --version  # Should be v14 or higher
    - In your project's overview page, scroll down to "Integrations"
    - Click on "API Keys"
    - Click "Create API Key"
-   - Enter a name for your key (e.g., "Custom Auth Demo")
+   - Enter a name for your key (e.g., "Custom Auth")
    - Set an expiry date (optional)
    - Click "Next"
    - Under "Scopes", select "Auth"
@@ -50,19 +50,19 @@ node --version  # Should be v14 or higher
 
 ## Project setup
 
-1. Create a new Vite project:
+1. Create a new Vite project. We'll use vanilla JavaScript for this tutorial:
 
 ```bash
 npm create vite@latest . -- --template vanilla
 ```
 
-2. Install the required dependencies:
+2. Next, install the required dependencies. For this project, we need `appwrite`, `cors`, `dotenv`, and `express`:
 
 ```bash
 npm install appwrite cors dotenv express node-appwrite
 ```
 
-3. Create a `.env` file in the project root:
+3. Create a `.env` file in the project root. This file will contain the Appwrite API key and other environment variables:
 
 ```env
 VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
@@ -74,13 +74,6 @@ APPWRITE_API_KEY=your_api_key
 APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 APPWRITE_PROJECT_ID=your_project_id
 ```
-
-> **Note about environments**: This tutorial uses environment variables for configuration. In a production environment, you should:
->
-> - Use different API keys for development and production
-> - Keep your production API keys secure
-> - Set up proper CORS and security headers
-> - Use HTTPS for all communications
 
 4. Update `package.json` to add the server script and set module type:
 
@@ -98,7 +91,7 @@ APPWRITE_PROJECT_ID=your_project_id
 
 ## Backend implementation
 
-First, let's create the authentication server that will validate users and generate Appwrite custom tokens. Create `server.js` in the project root and let's build it step by step:
+First, let's create the authentication server that will validate users and generate Appwrite custom tokens. Create `server.js` in the project root and let's build it step by step.
 
 1. First, import the required dependencies and load environment variables:
 
@@ -164,7 +157,10 @@ const thirdPartyUsers = {
 }
 ```
 
-6. Implement the login endpoint that handles authentication:
+Note that while this simulation stores passwords as plain text for demonstration, real authentication systems use secure password hashing for security.
+In a real-world scenario, you would integrate with an existing authentication system, a database, or another identity provider.
+
+1. Implement the login endpoint that handles authentication:
 
 ```javascript
 // Simulate third-party login
@@ -187,7 +183,7 @@ app.post('/auth/external/login', async (req, res) => {
         user.id,
         email,
         undefined, // phone
-        password,
+        undefined, // password can be undefined for custom auth
         user.name,
       )
     }
@@ -486,9 +482,8 @@ Note: The backend server will run on port 3000 by default, but you can change th
 
 1. Replace the simulated user database with your actual authentication system
 2. Add proper error handling and validation
-3. Implement rate limiting and security measures
-4. Add user registration functionality
-5. Enhance the UI with loading states and better error messages
+3. Add user registration functionality
+4. Enhance the UI with loading states and better error messages
 
 ## Troubleshooting
 
@@ -506,27 +501,6 @@ Here are some common issues you might encounter and how to resolve them:
 - **Session not persisting**: Check that cookies are enabled in your browser
 - **Invalid credentials**: Use the demo account (demo@example.com / demo1234) or check your user database
 
-## Security considerations
-
-When implementing this in production:
-
-1. **Token security**:
-
-   - Store tokens securely; never in localStorage
-   - Implement proper token expiration
-   - Use HTTPS for all API communications
-
-2. **User management**:
-
-   - Implement proper password hashing
-   - Add rate limiting for login attempts
-   - Consider adding 2FA support
-
-3. **Error handling**:
-   - Never expose internal errors to clients
-   - Implement proper logging
-   - Monitor authentication failures
-
 ## Conclusion
 
 In this tutorial, you've learned how to:
@@ -536,7 +510,7 @@ In this tutorial, you've learned how to:
 - Create a frontend that handles the authentication flow
 - Implement secure session management
 
-This implementation provides a foundation for building more complex authentication systems. While we've used a simple in-memory user database for demonstration, the concepts apply to any external authentication provider, whether it's your own user database, Active Directory, or third-party identity providers.
+This implementation provides a foundation for building more complex authentication systems. While we've used a simple in-memory user database for demonstration, the concepts apply to any external authentication provider, whether it's your own user database or third-party identity providers.
 
 Remember that authentication is a critical security component. Before deploying to production, ensure you've implemented proper security measures, error handling, and user management features.
 
