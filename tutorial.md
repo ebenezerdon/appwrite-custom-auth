@@ -1,6 +1,10 @@
 # Building custom authentication flows with Appwrite
 
-This tutorial demonstrates how to implement custom authentication flows using Appwrite's custom tokens. You'll learn how to integrate external authentication systems with Appwrite's session management through a working example.
+While Appwrite provides built-in authentication methods like email/password, OAuth, and Magic URL, there are scenarios where you need more flexibility. You might have an existing user database, a legacy authentication system that needs to be maintained, or specific security requirements that demand custom implementation.
+
+Appwrite's custom authentication solves these challenges by allowing you to integrate your existing authentication system or third-party identity providers. You can validate users through your system while still taking advantage of Appwrite's session management and user features.
+
+In this guide, you'll learn how to implement custom authentication flows using Appwrite's custom tokens. We'll cover validating users through an external system, generating custom tokens, creating secure sessions, and managing the complete authentication lifecycle.
 
 ## What we'll build
 
@@ -8,7 +12,7 @@ A simple authentication demo that:
 
 1. Uses a simulated third-party authentication system
 2. Integrates with Appwrite's custom token authentication
-3. Provides a complete login/logout flow with session management
+3. Provides a login/logout flow with session management
 
 ## Prerequisites
 
@@ -30,7 +34,7 @@ node --version  # Should be v14 or higher
 
    - Sign in to your [Appwrite Console](https://cloud.appwrite.io)
    - Create a new project or open an existing one
-   - Note down your Project ID from the project overview page
+   - Note down your Project ID when creating a project. You can also find it in the Settings page.
 
 3. Create an API key:
 
