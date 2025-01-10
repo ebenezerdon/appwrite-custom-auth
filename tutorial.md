@@ -470,7 +470,7 @@ To enhance this basic implementation, consider these improvements:
 - Replace the simulated user database with your actual authentication system
 - Add comprehensive error handling and input validation
 - Implement user registration functionality
-- Improve the UI with loading states and better error messages
+- Improve the UI with loading states and better error messages. You might want to use a UI framework or template engine depending on your project's requirements.
 
 ## Troubleshooting
 
