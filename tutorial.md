@@ -496,3 +496,11 @@ This tutorial has demonstrated how to implement custom authentication with Appwr
 While we've used a simple in-memory user database for demonstration, these concepts apply to any external authentication provider, whether it's your own user database or third-party identity providers.
 
 Remember that authentication is an important security component. Before deploying to production, ensure you've implemented proper security measures, error handling, and user management features.
+
+The complete source code for this tutorial is available in our [GitHub repository](https://github.com/appwrite-community/appwrite-custom-auth).
+
+## More resources
+
+- [Appwrite Custom token login](https://appwrite.io/docs/products/auth/custom-token)
+- [Appwrite Authentication docs](https://appwrite.io/docs/products/auth)
+- [How to set up Google authentication in React with Appwrite](https://appwrite.io/blog/post/set-up-google-auth-appwrite-react)
