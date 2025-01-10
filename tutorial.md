@@ -163,7 +163,7 @@ app.post('/auth/external/login', async (req, res) => {
       )
     }
 
-    // After validating with external system, create Appwrite token
+    // Create Appwrite token and return it to the client
     const token = await users.createToken(user.id)
     res.json({
       userId: user.id,
