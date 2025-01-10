@@ -203,7 +203,7 @@ npm run server
 
 Now that our authentication server is running, let's create an intuitive user interface. We'll break this down into several parts: HTML structure, styling, and JavaScript logic. Each part plays a crucial role in creating a seamless authentication experience.
 
-### HTML Structure and Styling
+### HTML structure and styling
 
 The foundation of our frontend starts with a clean HTML structure. We'll create a simple container-based layout that will house our authentication components. In your `index.html` file, add the following code:
 
